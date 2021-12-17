@@ -89,6 +89,7 @@ def pso(n, F, w, c1, c2, menus):
     return bests[-1]
 
 if __name__=="__main__":
+
     n = 50 # number of particles
     D = 70 # number of dimensions
     # def f(x):
