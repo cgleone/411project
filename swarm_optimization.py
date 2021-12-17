@@ -69,10 +69,13 @@ class Particle:
     def get_best_f(self):
         return self.best_f
 
+    def get_velocity(self):
+        return self.v
+
 
 def pso(n, F, w, c1, c2, menus):
     swarm = Swarm(F, n, w, c1, c2, D)
-    iterations = 100
+    iterations = 200
     pbar = pkbar.Pbar('running swarm', iterations)
     bests = []
     for i in range(iterations):
@@ -81,16 +84,18 @@ def pso(n, F, w, c1, c2, menus):
         pbar.update(i)
         # swarm.plot_particles()
         # plt.show()
+    velocities = [p.get_velocity() for p in swarm.particles]
+    print("Final Particle Velocities: {}".format(velocities))
     return bests[-1]
 
 if __name__=="__main__":
-    n = 100 # number of particles
+    n = 50 # number of particles
     D = 70 # number of dimensions
     # def f(x):
     #     return np.sum(np.abs(x)) # f(x) = sum|x|
 
     x_answer = pso(n, f, 2, 2, 2, D)
     f_answer = f(x_answer, print_final=True)
-    print(x_answer)
+    print([round(a, 1) for a in x_answer])
     print("Objective function value: {}".format(f_answer))
 

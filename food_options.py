@@ -29,7 +29,7 @@ def f(x, print_final=False):
 
     penalties = get_penalties(xb, xl, xd)
 
-    f = (breakfast_cost + lunch_cost + dinner_cost) + carbon_weighting*(breakfast_carbon + lunch_carbon + dinner_carbon) + penalties
+    f = (breakfast_cost + lunch_cost + dinner_cost) + carbon_weighting*(breakfast_carbon + lunch_carbon + dinner_carbon) + 1000*penalties
 
     if print_final:
         print("Penalties: {}".format(penalties))
