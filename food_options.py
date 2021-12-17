@@ -7,15 +7,13 @@ dinner_options = pd.read_csv('dinner.csv')
 constraints = pd.read_csv('constraints.csv', index_col='constraints')
 
 
-print(breakfast_options.loc['dairy smoothie']['fibre'])
-
 # nutrient_vals = [energy, protein, fat .....]
 # nutrient_penalties = min(nutrient_vals, 0)
 # f = [(x1*c1 + x2*c2 + ....... + xi*ci) + (x1*cf1 + x2*cf2 + ....... + xi*cfi) + nutrient_penalties] +
 
 # breakfast_cost = np.dot(x, np.array(breakfast_options['cost']))
 
-def f(x):
+def f(x, print_final=False):
     xb = x[0:len(breakfast_options)]
     xl = x[len(breakfast_options):len(lunch_options)+len(breakfast_options)]
     xd = x[len(lunch_options)+len(breakfast_options):len(x)]
@@ -31,7 +29,11 @@ def f(x):
 
     penalties = get_penalties(xb, xl, xd)
 
-    f = breakfast_cost + lunch_cost + dinner_cost + carbon_weighting*(breakfast_carbon + lunch_carbon + dinner_carbon) + penalties
+    f = (breakfast_cost + lunch_cost + dinner_cost) + carbon_weighting*(breakfast_carbon + lunch_carbon + dinner_carbon) + penalties
+
+    if print_final:
+        print("Penalties: {}".format(penalties))
+
     return f
 
 
@@ -40,9 +42,13 @@ def get_penalties(xb, xl, xd):
     penalties = []
     total_nutrients = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+    breakfast_cals = 0
+    lunch_cals = 0
+    dinner_cals = 0
+
     for i in range(len(xb)): # for each food option at breakfast
         option_quantity = xb[i]
-        if option_quantity: # if we are having any of this food option at breakfast today (aka in this iteration)
+        if option_quantity > 0: # if we are having any of this food option at breakfast today (aka in this iteration)
             option_nutrients = [breakfast_options.iloc[i]['energy'], breakfast_options.iloc[i]['protein'],
                             breakfast_options.iloc[i]['carbs'], breakfast_options.iloc[i]['fibre'],
                             breakfast_options.iloc[i]['fat'], breakfast_options.iloc[i]['sat_fat'],
@@ -51,10 +57,11 @@ def get_penalties(xb, xl, xd):
                             breakfast_options.iloc[i]['potassium']]
             for j in range(len(total_nutrients)):
                 total_nutrients[j] = total_nutrients[j] + (option_nutrients[j]*option_quantity)
+            breakfast_cals = breakfast_cals + option_nutrients[0]*option_quantity
 
     for i in range(len(xl)):  # for each food option at lunch
         option_quantity = xl[i]
-        if option_quantity:  # if we are having any of this food option at lunch today (aka in this iteration)
+        if option_quantity > 0:  # if we are having any of this food option at lunch today (aka in this iteration)
             option_nutrients = [lunch_options.iloc[i]['energy'], lunch_options.iloc[i]['protein'],
                                 lunch_options.iloc[i]['carbs'], lunch_options.iloc[i]['fibre'],
                                 lunch_options.iloc[i]['fat'], lunch_options.iloc[i]['sat_fat'],
@@ -63,10 +70,11 @@ def get_penalties(xb, xl, xd):
                                 lunch_options.iloc[i]['potassium']]
             for j in range(len(total_nutrients)):
                 total_nutrients[j] = total_nutrients[j] + (option_nutrients[j] * option_quantity)
+            lunch_cals = lunch_cals + option_nutrients[0]*option_quantity
 
     for i in range(len(xd)):  # for each food option at dinner
         option_quantity = xd[i]
-        if option_quantity:  # if we are having any of this food option at dinner today (aka in this iteration)
+        if option_quantity > 0:  # if we are having any of this food option at dinner today (aka in this iteration)
             option_nutrients = [dinner_options.iloc[i]['energy'], dinner_options.iloc[i]['protein'],
                                 dinner_options.iloc[i]['carbs'], dinner_options.iloc[i]['fibre'],
                                 dinner_options.iloc[i]['fat'], dinner_options.iloc[i]['sat_fat'],
@@ -75,6 +83,7 @@ def get_penalties(xb, xl, xd):
                                 dinner_options.iloc[i]['potassium']]
             for j in range(len(total_nutrients)):
                 total_nutrients[j] = total_nutrients[j] + (option_nutrients[j] * option_quantity)
+            dinner_cals = dinner_cals + option_nutrients[0]*option_quantity
 
     for i in range(len(total_nutrients)):
         intake = total_nutrients[i]
@@ -84,6 +93,20 @@ def get_penalties(xb, xl, xd):
             penalties.append((min_val-intake)/min_val)
         elif intake > max_val:
             penalties.append((intake-max_val)/max_val)
+
+    meal_balance_error = 0
+    for meal_cals in [breakfast_cals, lunch_cals, dinner_cals]:
+        if meal_cals < 300:
+            meal_balance_error = meal_balance_error + (300 - meal_cals)
+    penalties.append(meal_balance_error)
+
+    negative_error = 0
+    for x in [xb, xl, xd]:
+        for x_i in x:
+            if x_i < 0:
+                negative_error = negative_error + (-x_i)
+
+    penalties.append(1000*negative_error)
 
     return sum(penalties)
 

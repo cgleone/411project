@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pkbar
+from food_options import f
 
 
 class Swarm:
@@ -13,7 +14,7 @@ class Swarm:
         self.f = f
 
         # create particles
-        initial_xs = np.random.rand(n, D) * 5 - 2.5
+        initial_xs = np.random.rand(n, D) * 5
         initial_vs = np.random.rand(n, D) * .5 - .25
         self.particles = [Particle(x0, v0, f) for x0, v0 in zip(initial_xs, initial_vs)]
 
@@ -71,21 +72,25 @@ class Particle:
 
 def pso(n, F, w, c1, c2, menus):
     swarm = Swarm(F, n, w, c1, c2, D)
-    iterations = 1000
+    iterations = 100
     pbar = pkbar.Pbar('running swarm', iterations)
     bests = []
     for i in range(iterations):
-        swarm.step(w=2 * np.exp(-i/2000))
-        bests.append(swarm.get_best().get_best_f())
+        swarm.step(w=2 * np.exp(-i/100))
+        bests.append(swarm.get_best().get_best_x())
         pbar.update(i)
         # swarm.plot_particles()
         # plt.show()
-    print(bests[-1])
+    return bests[-1]
 
 if __name__=="__main__":
-    n = 10000 # number of particles
-    D = 100 # number of dimensions
-    def f(x):
-        return np.sum(np.abs(x)) # f(x) = sum|x|
-    pso(n, f, 2, 2, 2, D)
+    n = 100 # number of particles
+    D = 70 # number of dimensions
+    # def f(x):
+    #     return np.sum(np.abs(x)) # f(x) = sum|x|
+
+    x_answer = pso(n, f, 2, 2, 2, D)
+    f_answer = f(x_answer, print_final=True)
+    print(x_answer)
+    print("Objective function value: {}".format(f_answer))
 
