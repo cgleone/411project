@@ -27,19 +27,16 @@ def f(x, print_final=False):
 
     carbon_weighting = 4
 
-    penalties = get_penalties(xb, xl, xd)
+    penalties = get_penalties(xb, xl, xd, print_final=print_final)
 
     f = (breakfast_cost + lunch_cost + dinner_cost) + carbon_weighting*(breakfast_carbon + lunch_carbon + dinner_carbon) + penalties
-
-    if print_final:
-        print("Penalties: {}".format(penalties))
 
     return f
 
 
-def get_penalties(xb, xl, xd):
+def get_penalties(xb, xl, xd, print_final=False):
 
-    penalties = []
+    penalties = {}
     total_nutrients = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     breakfast_cals = 0
@@ -90,15 +87,15 @@ def get_penalties(xb, xl, xd):
         min_val = constraints.loc['min'][i]
         max_val = constraints.loc['max'][i]
         if intake < min_val:
-            penalties.append((min_val-intake)/min_val)
+            penalties['nutrient {} low'.format(i)] = (min_val-intake)/min_val
         elif intake > max_val:
-            penalties.append((intake-max_val)/max_val)
+            penalties['nutrient {} high'.format(i)] = (intake-max_val)/max_val
 
     meal_balance_error = 0
     for meal_cals in [breakfast_cals, lunch_cals, dinner_cals]:
         if meal_cals < 300:
             meal_balance_error = meal_balance_error + (300 - meal_cals)
-    penalties.append(meal_balance_error)
+    penalties["meal balance"] = meal_balance_error
 
     negative_error = 0
     for x in [xb, xl, xd]:
@@ -106,10 +103,10 @@ def get_penalties(xb, xl, xd):
             if x_i < 0:
                 negative_error = negative_error + (-x_i)
 
-    penalties.append(1000*negative_error)
+    penalties["negative"] = 1000 * negative_error
 
-    return sum(penalties)
+    if print_final:
+        print(penalties)
 
-
-
+    return sum([p for p in penalties.values()])
 
