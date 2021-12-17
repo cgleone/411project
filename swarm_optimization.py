@@ -14,8 +14,12 @@ class Swarm:
         self.f = f
 
         # create particles
-        initial_xs = np.random.rand(n, D) * 5
-        initial_vs = np.random.rand(n, D) * .5 - .25
+        dist = np.random.rand(n, D)
+        low = np.zeros((n, D))
+        high = np.ones((n, D))
+        initial_xs = np.where(dist<.2, high, low)
+        initial_xs = np.where(dist<.1, 2*high, initial_xs)
+        initial_vs = np.random.rand(n, D) * 1
         self.particles = [Particle(x0, v0, f) for x0, v0 in zip(initial_xs, initial_vs)]
 
         self.best = self.get_best()
@@ -54,8 +58,9 @@ class Particle:
         self.v = self.v * w + r1 * c1 * (self.best_x - self.x) + r2 * c2 * (swarm_best - self.x)
         # self.v = (swarm_best - self.x) * 0.1
         self.x = self.x + self.v
+        rounded_x = [round(a, 1) for a in self.x]
 
-        f_val = f(self.x)
+        f_val = f(rounded_x)
         if f_val < self.best_f:
             self.best_x = self.x
             self.best_f = f_val
@@ -75,27 +80,31 @@ class Particle:
 
 def pso(n, F, w, c1, c2, menus):
     swarm = Swarm(F, n, w, c1, c2, D)
-    iterations = 200
+    iterations = 100
     pbar = pkbar.Pbar('running swarm', iterations)
     bests = []
     for i in range(iterations):
-        swarm.step(w=2 * np.exp(-i/100))
+        #swarm.step(w=2 * np.exp(-i/1000))
+        swarm.step()
         bests.append(swarm.get_best().get_best_x())
         pbar.update(i)
+        print([round(a, 2) for a in bests[i]])
         # swarm.plot_particles()
         # plt.show()
     velocities = [p.get_velocity() for p in swarm.particles]
-    print("Final Particle Velocities: {}".format(velocities))
+   # print("Final Particle Velocities: {}".format(velocities))
     return bests[-1]
 
 if __name__=="__main__":
 
-    n = 50 # number of particles
+    np.random.seed(444)
+
+    n = 350 # number of particles
     D = 70 # number of dimensions
     # def f(x):
     #     return np.sum(np.abs(x)) # f(x) = sum|x|
 
-    x_answer = pso(n, f, 2, 2, 2, D)
+    x_answer = pso(n, f, 0.4, 2, 2, D)
     f_answer = f(x_answer, print_final=True)
     print([round(a, 1) for a in x_answer])
     print("Objective function value: {}".format(f_answer))

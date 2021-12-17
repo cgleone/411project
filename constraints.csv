@@ -1,3 +1,3 @@
-﻿constraints,energy,protein,carbs,fibre,fat,sat_fat,cholesterol,calcium,iron,sodium,potassium
-min,1725,40,100,25,39,0,0,800,8.1,15,4700
-max,1775,50,140,30,68,14,300,2500,45,2300,1.00E+05
+﻿constraints,energy,protein,carbs ,fibre,fat,sat_fat,cholesterol,calcium,iron,sodium,potassium
+min,1725,40,125,25,39,0,0,800,8.1,15,4700
+max,1775,60,175,35,68,14,300,2500,45,2300,1.00E+05
