@@ -13,6 +13,24 @@ constraints = pd.read_csv('constraints.csv', index_col='constraints')
 
 # breakfast_cost = np.dot(x, np.array(breakfast_options['cost']))
 
+def f_scipy(x):
+    xb = x[0:len(breakfast_options)]
+    xl = x[len(breakfast_options):len(lunch_options)+len(breakfast_options)]
+    xd = x[len(lunch_options)+len(breakfast_options):len(x)]
+
+    breakfast_cost = np.dot(xb, np.array(breakfast_options['cost']))
+    lunch_cost = np.dot(xl, np.array(lunch_options['cost']))
+    dinner_cost = np.dot(xd, np.array(dinner_options['cost']))
+    breakfast_carbon = np.dot(xb, np.array(breakfast_options['carbon']))
+    lunch_carbon = np.dot(xl, np.array(lunch_options['carbon']))
+    dinner_carbon = np.dot(xd, np.array(dinner_options['carbon']))
+
+    carbon_weighting = 4
+
+    f = (breakfast_cost + lunch_cost + dinner_cost) + carbon_weighting*(breakfast_carbon + lunch_carbon + dinner_carbon)
+
+    return f
+
 def f(x, print_final=False):
     xb = x[0:len(breakfast_options)]
     xl = x[len(breakfast_options):len(lunch_options)+len(breakfast_options)]
@@ -109,4 +127,3 @@ def get_penalties(xb, xl, xd, print_final=False):
         print(penalties)
 
     return sum([p for p in penalties.values()])
-
