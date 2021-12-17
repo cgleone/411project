@@ -128,7 +128,11 @@ def get_penalties(xb, xl, xd, print_final=False):
             penalties[key] = penalties[key]*1000
 
     if carbon_constraint():
-        carbon
+        carbon_penalty = get_carbon_penalty(carbon_constraint())
+        max_carbon = carbon_constraint()
+        current_carbon = 0
+
+
 
     return sum([p for p in penalties.values()])
 
@@ -176,3 +180,5 @@ def carbon_constraint():
         print("Invalid Year Entered - Assuming Year is 2020 and no carbon constraint is present")
         return 0
 
+def get_carbon_penalty():
+    
